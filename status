@@ -1,0 +1,48 @@
+#!/bin/bash
+
+Y='\033[1;33m'
+B='\033[1;34m'
+G='\033[1;32m'
+NC='\033[0m' # No Color
+
+echo -e "$Y--- Status$NC"
+
+if [ "$1" == "remote" ]; then
+  echo -e "$Y-- Updating remotes$NC"
+fi
+
+for n in `ls -1d */`
+do
+  cd $n
+
+  if [ ! -d .git ]; then
+    cd ..
+    continue
+  fi
+
+  BRANCH=`git rev-parse --abbrev-ref HEAD`
+
+  if [ "$1" == "remote" ]; then
+    git remote update > /dev/null 2>&1
+  fi
+
+  LOCAL=$(git rev-parse @)
+  REMOTE=$(git rev-parse @{u})
+  BASE=$(git merge-base @ @{u})
+
+  if [ $LOCAL = $REMOTE ]; then
+    STATE="Up-to-date"
+  elif [ $LOCAL = $BASE ]; then
+    STATE="Need to pull"
+  elif [ $REMOTE = $BASE ]; then
+    STATE="Need to push"
+  else
+    STATE="Diverged"
+  fi
+
+  cd ..
+  printf "$B%-30s$NC $G%-10s$NC $y%-20s$NC\n" "$n" "$BRANCH" "$STATE"
+
+done
+echo -e "$Y--- Done.$NC"
+
