@@ -41,7 +41,7 @@ $ chmod +x path_to_file/turbostatus`
 2. Clone the repository into a new directory called `turbo-status`:
 
     ```console
-    $ git clone https://github.com/vigour-io/turbo-status.git
+    $ git clone https://github.com/vigour-io/turbo-status.git turbostatus
     ```
 
 3. Include `turbo-status` plugin to your .zshrc file along with other plugins:
