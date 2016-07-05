@@ -15,11 +15,9 @@ $ turbostatus
 # or to update your remotes first (slow)
 $ turbostatus remote
 
-# when running as a zsh plugin it's also aliased to just `ts`
+# when running as a zsh plugin a `ts` alias is also created
 $ ts
 ```
-
-also aliased to just `$ ts` when run as a zsh plugin
 
 ## Install
 
