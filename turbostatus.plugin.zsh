@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function turbostatus {
-  . $ZSH/plugins/turbostatus/turbostatus.sh
+  . $ZSH_CUSTOM/plugins/turbostatus/turbostatus
 }
 
 alias ts='turbostatus'
