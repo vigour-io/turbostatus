@@ -55,4 +55,5 @@ $ chmod +x path_to_file/turbostatus`
 
 ## TODO
 
-- Make this a node module
+- [ ] Use emoji to make display more compact
+- [ ] Make this a node module
