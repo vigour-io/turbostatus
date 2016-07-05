@@ -1,4 +1,4 @@
-# Turbostatus
+# ⚡️ turbostatus
 
 Shell script to check the git repositories in your folder and show:
 
