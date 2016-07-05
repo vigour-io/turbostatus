@@ -38,7 +38,7 @@ $ chmod +x path_to_file/turbostatus`
     $ take ~/.oh-my-zsh/custom/plugins
     ```
 
-2. Clone the repository into a new directory called `turbo-status`:
+2. Clone the repository into a new directory called `turbostatus`:
 
     ```console
     $ git clone https://github.com/vigour-io/turbo-status.git turbostatus
