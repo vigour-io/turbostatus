@@ -48,7 +48,7 @@ $ chmod +x path_to_file/turbostatus`
 
     ```zsh
     ...
-    plugins=(brew git laravel codeception berkshelf)
+    plugins=(git z cp turbo-status)
     ...
     ```
 
