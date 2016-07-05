@@ -1,6 +1,6 @@
 # Turbostatus
 
-Shell script to Check all git repositories in your folder and show:
+Shell script to check the git repositories in your folder and show:
 
 - Current branch
 - If you are up to date, need to pull, need to push or diverged
