@@ -5,7 +5,7 @@ local B="\033[1;34m"
 local G="\033[1;32m"
 local NC="\033[0m" # No Color
 
-echo -e "$Y--- Status$NC"
+echo -e "${Y}⚡️  TURBOSTATUS $NC"
 
 if [ "$1" == "remote" ]; then
   echo -e "$Y-- Updating remotes$NC"
@@ -52,5 +52,4 @@ do
   awk 'BEGIN { printf "'$B'%-30s'$NC' '$G'%-15s'$NC' %-15s '$Y'%s'$NC'\n", "'$n'", "'$BRANCH'", "'$STATE'", "'$UNCOMMITED'" }'
 
 done
-echo -e "$Y--- Done.$NC"
 
