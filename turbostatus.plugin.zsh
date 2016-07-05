@@ -1,8 +1,7 @@
 #!/bin/bash
 
 function turbostatus {
-  # Temp location
-  . ~/work/turbo-status/turbostatus
+  . $ZSH/plugins/turbo-status/turbostatus.sh
 }
 
 alias ts='turbostatus'

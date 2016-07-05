@@ -48,7 +48,7 @@ $ chmod +x path_to_file/turbostatus`
 
     ```zsh
     ...
-    plugins=(git z cp turbo-status)
+    plugins=(git z cp turbostatus)
     ...
     ```
 
