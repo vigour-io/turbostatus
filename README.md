@@ -28,6 +28,14 @@ Copy to somewhere in your path, give execute rights with
 $ chmod +x path_to_file/turbostatus`
 ```
 
+### Zplug
+
+Add to your plugin section:
+
+```zsh
+zplug "vigour-io/turbostatus"
+```
+
 ### oh-my-zsh plugin
 
 1. Change to `oh-my-zsh` plugins directory:
@@ -39,7 +47,7 @@ $ chmod +x path_to_file/turbostatus`
 2. Clone the repository into a new directory called `turbostatus`:
 
     ```console
-    $ git clone https://github.com/vigour-io/turbo-status.git turbostatus
+    $ git clone https://github.com/vigour-io/turbostatus.git
     ```
 
 3. Include `turbo-status` plugin to your .zshrc file along with other plugins:
