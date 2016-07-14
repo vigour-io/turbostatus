@@ -27,17 +27,24 @@ do
   fi
 
   local LOCAL=$(git rev-parse @)
-  local REMOTE=$(git rev-parse @{u})
-  local BASE=$(git merge-base @ @{u})
 
-  if [ $LOCAL = $REMOTE ]; then
-    local STATE="Up-to-date"
-  elif [ $LOCAL = $BASE ]; then
-    local STATE="Need to pull"
-  elif [ $REMOTE = $BASE ]; then
-    local STATE="Need to push"
+  if [ $BRANCH = 'HEAD' ]; then
+    local STATE="--"
   else
-    local STATE="Diverged"
+
+    local REMOTE=$(git rev-parse @{u})
+    local BASE=$(git merge-base @ @{u})
+
+    if [ $LOCAL = $REMOTE ]; then
+      local STATE="Up-to-date"
+    elif [ $LOCAL = $BASE ]; then
+      local STATE="Need to pull"
+    elif [ $REMOTE = $BASE ]; then
+      local STATE="Need to push"
+    else
+      local STATE="Diverged"
+    fi
+
   fi
 
   UNCOMMITED=""
@@ -49,7 +56,7 @@ do
   # awk being used because of wird zsh printf bug that does lot left align strings
   # should just be:
   # printf "$B%-30s$NC $G%-15s$NC %-20s\n" $n $BRANCH $STATE
-  awk 'BEGIN { printf "'$B'%-30s'$NC' '$G'%-15s'$NC' %-15s '$Y'%s'$NC'\n", "'$n'", "'$BRANCH'", "'$STATE'", "'$UNCOMMITED'" }'
+  awk 'BEGIN { printf "'$B'%-30s'$NC' '$B'%s'$NC' '$G'%-15s'$NC' %-15s '$Y'%s'$NC'\n", "'$n'", "'$(echo $LOCAL | cut -c1-8)'", "'$BRANCH'", "'$STATE'", "'$UNCOMMITED'" }'
 
 done
 
