@@ -28,6 +28,9 @@ do
 
   local LOCAL=$(git rev-parse @)
 
+  local DESC=$(git describe --always)
+  # [[ $DESC =~ fatal ]] && local DESC=$(echo $LOCAL | cut -c1-8)
+
   if [ $BRANCH = 'HEAD' ]; then
     local STATE="--"
   else
@@ -56,7 +59,7 @@ do
   # awk being used because of wird zsh printf bug that does lot left align strings
   # should just be:
   # printf "$B%-30s$NC $G%-15s$NC %-20s\n" $n $BRANCH $STATE
-  awk 'BEGIN { printf "'$B'%-30s'$NC' '$B'%s'$NC' '$G'%-15s'$NC' %-15s '$Y'%s'$NC'\n", "'$n'", "'$(echo $LOCAL | cut -c1-8)'", "'$BRANCH'", "'$STATE'", "'$UNCOMMITED'" }'
+  awk 'BEGIN { printf "'$B'%-30s'$NC' '$B'%20s'$NC' '$G'%-15s'$NC' %-15s '$Y'%s'$NC'\n", "'$n'", "'$DESC'", "'$BRANCH'", "'$STATE'", "'$UNCOMMITED'" }'
 
 done
 
