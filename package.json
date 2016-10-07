@@ -4,7 +4,8 @@
   "description": "CLI util to show status of repos in a main folder.",
   "main": "lib/index.js",
   "bin": {
-    "turbostatus2": "./bin/cmd.js"
+    "turbostatus": "./bin/cmd.js",
+    "ts": "./bin/cmd.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
