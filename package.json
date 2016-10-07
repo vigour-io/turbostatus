@@ -1,6 +1,6 @@
 {
   "name": "turbostatus",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "CLI util to show status of repos in a main folder.",
   "main": "lib/index.js",
   "bin": {
