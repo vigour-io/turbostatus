@@ -28,9 +28,8 @@
     "Nuno Frade <nuno@vigour.io>"
   ],
   "dependencies": {
-    "cli-color": "^1.1.0",
-    "clui": "^0.3.1",
-    "commander": "^2.9.0",
-    "suppose": "^0.6.1"
+    "cli-table2": "^0.2.0",
+    "colors": "^1.1.2",
+    "commander": "^2.9.0"
   }
 }
