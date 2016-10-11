@@ -33,6 +33,7 @@
     "colors": "^1.1.2",
     "commander": "^2.9.0",
     "figures": "^1.7.0",
-    "ora": "^0.3.0"
+    "ora": "^0.3.0",
+    "update-notifier": "^1.0.2"
   }
 }
