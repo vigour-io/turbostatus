@@ -4,8 +4,8 @@
   "description": "CLI util to show status of repos in a main folder.",
   "main": "lib/index.js",
   "bin": {
-    "turbostatus": "./bin/cmd.js",
-    "ts": "./bin/cmd.js"
+    "turbostatus": "./bin/turbostatus",
+    "ts": "./bin/turbostatus"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -31,8 +31,8 @@
   "dependencies": {
     "cli-table2": "^0.2.0",
     "colors": "^1.1.2",
-    "commander": "^2.9.0",
     "figures": "^1.7.0",
+    "minimist": "^1.2.0",
     "ora": "^0.3.0",
     "update-notifier": "^1.0.2"
   }

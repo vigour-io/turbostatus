@@ -1,0 +1,65 @@
+#!/usr/bin/env node
+
+// Thanks https://github.com/zeit/now
+
+const minimist = require('minimist')
+const pkg = require('../package.json')
+const updateNotifier = require('update-notifier')
+const notifier = updateNotifier({ pkg })
+const spawn = require('child_process').spawn
+const path = require('path')
+
+const argv = minimist(process.argv.slice(2), {
+  boolean: ['help', 'version'],
+  alias: {
+    help: 'h',
+    version: 'V'
+  }
+})
+
+notifier.notify()
+
+const defaultCommand = 'list'
+const commands = ['list', 'ls']
+const aliases = { 'ls': 'list' }
+
+let cmd = argv._[0]
+let args = []
+
+if (cmd === 'help') {
+  cmd = argv._[1]
+  if (commands.indexOf(cmd) < 0) {
+    console.log(`
+  ${colors.bold('turbostatus')}
+
+  ${colors.dim('Commands:')}
+
+    help <command>      shows usage information  for a specific command
+    list                list repos in current folder and show their status
+
+  ${colors.dim('Options:')}
+
+    -h, --help          output usage information
+    -V, --version       output usage information
+
+  ${colors.dim('Alias:')} turbostatus ls
+`)
+    process.exit(0)
+  }
+  args.push('--help')
+}
+
+if (commands.indexOf(cmd) > -1) {
+  cmd = aliases[cmd] || cmd
+  args = args.concat(process.argv.slice(3))
+} else {
+  cmd = defaultCommand
+  args = args.concat(process.argv.slice(2))
+}
+
+let bin = path.resolve(__dirname, 'turbostatus-' + cmd)
+
+const proc = spawn(bin, args, { stdio: 'inherit' })
+proc.on('close', (code) => process.exit(code))
+proc.on('error', () => process.exit(1))
+
