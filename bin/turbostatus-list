@@ -26,6 +26,7 @@ const help = () => {
 
     -h, --help                  output usage information
     -p, --path <path>           use <path> instead of current one
+    -r, --remotes               update repotes before checking status
     -f, --filter "<wildcard>"   filters repos by <wildcard>
 
   ${colors.dim('Alias:')} turbostatus ls
