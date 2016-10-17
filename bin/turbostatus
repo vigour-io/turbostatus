@@ -8,6 +8,7 @@ const updateNotifier = require('update-notifier')
 const notifier = updateNotifier({ pkg })
 const spawn = require('child_process').spawn
 const path = require('path')
+const colors = require('colors/safe')
 
 const argv = minimist(process.argv.slice(2), {
   boolean: ['help', 'version'],
@@ -26,7 +27,7 @@ const aliases = { 'ls': 'list' }
 let cmd = argv._[0]
 let args = []
 
-if (cmd === 'help') {
+if (cmd === 'help' || (!cmd && argv.help)) {
   cmd = argv._[1]
   if (commands.indexOf(cmd) < 0) {
     console.log(`
@@ -42,11 +43,16 @@ if (cmd === 'help') {
     -h, --help          output usage information
     -V, --version       output usage information
 
-  ${colors.dim('Alias:')} turbostatus ls
+  ${colors.dim('Alias:')} ts
 `)
     process.exit(0)
   }
   args.push('--help')
+}
+
+if (argv.version) {
+  console.log(pkg.version)
+  process.exit(0)
 }
 
 if (commands.indexOf(cmd) > -1) {
