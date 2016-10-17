@@ -2,7 +2,7 @@
 
 const minimist = require('minimist')
 const colors = require('colors/safe')
-const walk = require('../lib/walk')
+const repo = require('../lib')
 const ui = require('../lib/ui')
 
 const argv = minimist(process.argv.slice(2), {
@@ -40,7 +40,42 @@ if (argv.help) {
 ui.title()
 
 if (argv.remotes) ui.infoRemotes()
-walk(argv.path, argv.remotes, argv.filter).then(() => {
-  ui.done()
-}).catch((err) => { console.log(err) })
+
+repo.getRepos(argv.path || process.cwd(), argv.filter)
+  .then((repos) => addBranchInfo(repos))
+  .then((repos) => {
+    ui.setNameColSize(propertyLargestLength('name', repos))
+    ui.setBranchColSize(propertyLargestLength('branch', repos))
+    return showInfoInSequence(repos, argv.remotes)
+  })
+  .then(() => { ui.done() })
+  .catch((err) => { console.log(err) })
+
+function addBranchInfo (repos) {
+  return Promise.all(repos.map((item) => {
+    return repo.getBranchFast(item.path).then((branch) => {
+      item.branch = branch
+      return item
+    }).catch((err) => console.log('Error getting branch', err))
+  }))
+}
+
+function showInfoInSequence (repos, remotes) {
+  var sequence = Promise.resolve()
+  repos.forEach((item) => {
+    sequence = sequence.then(() => {
+      return repo.info(item, remotes)
+    }).then((info) => {
+      ui.repoLine(info)
+    })
+  })
+  return sequence
+}
+
+function propertyLargestLength (property, repos) {
+  if (repos.length < 1) return void 0
+  const largest = repos
+          .reduce((a, b) => a[property].length > b[property].length ? a : b)
+  return largest[property].length + 2 // padding
+}
 
