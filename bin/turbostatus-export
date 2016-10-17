@@ -1,0 +1,107 @@
+#!/usr/bin/env node
+
+const minimist = require('minimist')
+const colors = require('colors/safe')
+const repo = require('../lib')
+const ui = require('../lib/ui')
+const ora = require('ora')
+const fs = require('fs')
+const path = require('path')
+
+const argv = minimist(process.argv.slice(2), {
+  string: ['path', 'filter'],
+  boolean: ['help'],
+  alias: {
+    help: 'h',
+    remotes: 'r',
+    path: 'p',
+    filter: 'f'
+  }
+})
+
+const help = () => {
+  console.log(`
+  ${colors.bold('turbostatus list')}
+
+    Exports repo info as json
+
+  ${colors.dim('Usage:')}
+
+    turbostatus export [options] <filename>
+
+    Ex: turbostatus export snapshot.json
+
+  ${colors.dim('Options:')}
+
+    -h, --help                  output usage information
+    -p, --path <path>           use <path> instead of current one
+    -f, --filter "<wildcard>"   filters repos by <wildcard>
+
+`)
+}
+
+if (argv.help) {
+  help()
+  process.exit(0)
+}
+
+let file = argv._[0]
+if (!file) {
+  console.log('Error: need to supply a file to export into')
+  help()
+  process.exit(1)
+}
+
+file = path.join(process.cwd(), file)
+
+ui.title()
+
+let spinner = ora(colors.bold('Getting info from repos')).start()
+
+repo.getRepos(argv.path || process.cwd(), argv.filter)
+  .then((repos) => addBranchInfo(repos))
+  .then((repos) => addOriginInfo(repos))
+  .then((repos) => addCommitInfo(repos))
+  .then((repos) => {
+    spinner.text = colors.bold('Saving file ' + file)
+    return new Promise((resolve, reject) => {
+      fs.writeFile(file, JSON.stringify(repos, null, 2), (err) => {
+        if (err) {
+          spinner.fail()
+          reject(err)
+          return
+        }
+        spinner.succeed()
+        resolve()
+      })
+    })
+  })
+  .then(() => { ui.done() })
+  .catch((err) => { console.log(err) })
+
+function addBranchInfo (repos) {
+  return Promise.all(repos.map((item) => {
+    return repo.getBranchFast(item.path).then((branch) => {
+      item.branch = branch
+      return item
+    }).catch((err) => console.log('Error getting branch', err))
+  }))
+}
+
+function addOriginInfo (repos) {
+  return Promise.all(repos.map((item) => {
+    return repo.getOrigin(item.path).then((origin) => {
+      item.origin = origin
+      return item
+    }).catch((err) => console.log('Error getting origin', err))
+  }))
+}
+
+function addCommitInfo (repos) {
+  return Promise.all(repos.map((item) => {
+    return repo.getLocalCommit(item.path).then((commit) => {
+      item.commit = commit
+      return item
+    }).catch((err) => console.log('Error getting commit', err))
+  }))
+}

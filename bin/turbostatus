@@ -21,7 +21,7 @@ const argv = minimist(process.argv.slice(2), {
 notifier.notify()
 
 const defaultCommand = 'list'
-const commands = ['list', 'ls']
+const commands = ['list', 'ls', 'export']
 const aliases = { 'ls': 'list' }
 
 let cmd = argv._[0]
@@ -37,6 +37,7 @@ if (cmd === 'help' || (!cmd && argv.help)) {
 
     help <command>      shows usage information  for a specific command
     list                list repos in current folder and show their status
+    export              exports repo info in json format
 
   ${colors.dim('Options:')}
 
@@ -65,7 +66,7 @@ if (commands.indexOf(cmd) > -1) {
 
 let bin = path.resolve(__dirname, 'turbostatus-' + cmd)
 
-const proc = spawn(bin, args, { stdio: 'inherit' })
+const proc = spawn(bin, args, { stdio: 'inherit', cwd: process.cwd })
 proc.on('close', (code) => process.exit(code))
 proc.on('error', () => process.exit(1))
 
