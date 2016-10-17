@@ -6,12 +6,13 @@ const walk = require('../lib/walk')
 const ui = require('../lib/ui')
 
 const argv = minimist(process.argv.slice(2), {
-  string: ['path'],
+  string: ['path', 'filter'],
   boolean: ['help', 'remotes'],
   alias: {
     help: 'h',
     remotes: 'r',
-    path: 'p'
+    path: 'p',
+    filter: 'f'
   }
 })
 
@@ -23,8 +24,9 @@ const help = () => {
 
   ${colors.dim('Options:')}
 
-    -h, --help          output usage information
-    -p, --path <path>   use <path> instead of current one
+    -h, --help                  output usage information
+    -p, --path <path>           use <path> instead of current one
+    -f, --filter "<wildcard>"   filters repos by <wildcard>
 
   ${colors.dim('Alias:')} turbostatus ls
 `)
@@ -38,7 +40,7 @@ if (argv.help) {
 ui.title()
 
 if (argv.remotes) ui.infoRemotes()
-walk(argv.path, argv.remotes).then(() => {
+walk(argv.path, argv.remotes, argv.filter).then(() => {
   ui.done()
 }).catch((err) => { console.log(err) })
 
