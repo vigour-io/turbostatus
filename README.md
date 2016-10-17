@@ -20,10 +20,12 @@ $ turbostatus -r
 $ ts -r
 ```
 
+There is also an export command and options to filter the repos that are searched. Check `turbostatus help` for more info.
+
 ## Install
 
 ```console
-npm i turbolink -g
+npm i turbostatus -g
 ```
 
 <sub>Zsh version still available in branch `v1`</sub>
