@@ -22,6 +22,16 @@ const help = () => {
 
     List repos in current folder and show their status
 
+  ${colors.dim('Usage:')}
+
+    turbostatus [options] 
+
+    list ${colors.dim('is the default turbostatus command')}
+    ${colors.dim('You can also use the alias')} ts
+
+    Ex: turbostatus -f '*app'
+        ts -r
+
   ${colors.dim('Options:')}
 
     -h, --help                  output usage information
