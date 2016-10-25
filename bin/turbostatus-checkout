@@ -1,0 +1,246 @@
+#!/usr/bin/env node
+
+const minimist = require('minimist')
+const colors = require('colors/safe')
+const repo = require('../lib')
+const ui = require('../lib/ui')
+// const ora = require('ora')
+const fs = require('fs')
+const path = require('path')
+const Queue = require('promise-queue')
+const logUpdate = require('log-update')
+const elegantSpinner = require('elegant-spinner')
+const figures = require('figures')
+const inquirer = require('inquirer')
+
+
+const argv = minimist(process.argv.slice(2), {
+  string: ['path', 'filter'],
+  boolean: ['help'],
+  alias: {
+    help: 'h',
+    remotes: 'r',
+    path: 'p',
+    filter: 'f'
+  }
+})
+
+const help = () => {
+  console.log(`
+  ${colors.bold('turbostatus checkout')}
+
+    Checksout repos from a json file
+
+  ${colors.dim('Usage:')}
+
+    turbostatus checkout [options] <filename>
+
+    Ex: turbostatus checkout snapshot.json
+
+  ${colors.dim('Options:')}
+
+    -h, --help                  output usage information
+    -p, --path <path>           use <path> instead of current one
+    -f, --filter "<wildcard>"   filters repos by <wildcard>
+
+`)
+}
+
+if (argv.help) {
+  help()
+  process.exit(0)
+}
+
+let file = argv._[0]
+if (!file) {
+  console.log('Error: need to supply a json file with the repo info')
+  help()
+  process.exit(1)
+}
+
+file = path.join(process.cwd(), file)
+let repos
+try {
+  repos = JSON.parse(fs.readFileSync(file, 'utf8'))
+} catch (e) {
+  console.log('Error: Could not parse the json file')
+  process.exit(1)
+}
+
+ui.title()
+
+Promise.resolve()
+  .then(gatherInfo)
+  .then(confirmChanges)
+  .then(changeRepos)
+  .then(() => {
+    console.log(colors.yellow.bold('done'))
+    const errors = repos.filter((item) => item.error).map((item) => item.error)
+    if (errors) {
+      console.log(['Errors: '].concat(errors).join('\n'))
+    }
+  })
+  .catch((err) => console.log(err))
+
+function gatherInfo () {
+  return new Promise((resolve, reject) => {
+    const queue = new Queue(4)
+
+    const task = (item) => Promise.resolve(item)
+      .then((item) => {
+        if (!repo.isRepo(item.path)) {
+          item.action = 'clone'
+        }
+        return item
+      })
+      .then((item) => {
+        if (item.action === 'clone') return item
+        return repo.getLocalCommit(item.path)
+          .then((localCommit) => {
+            if (localCommit === item.commit) {
+              item.action = 'upToDate'
+            } else {
+              item.action = 'checkout'
+            }
+            return item
+          })
+          .catch((err) => {
+            item.action = 'skip'
+            item.error = `${colors.red.bold(figures.bullet)} Could not get info for ${colors.blue.bold(item.name)}`
+          })
+      })
+      .catch((err) => console.log(err))
+
+    repos.forEach((item) => {
+      updatePath(item)
+      queue.add(() => task(item))
+    })
+
+    const spinnerFrame = elegantSpinner()
+
+    const loop = setInterval(() => {
+      const total = repos.length
+      const pending = queue.pendingPromises + queue.queue.length
+      const complete = total - pending
+      logUpdate(colors.yellow(spinnerFrame()) + ' Gathering info \n' + ui.progress(repos.length, complete))
+      if (pending < 1) {
+        clearInterval(loop)
+        logUpdate.clear()
+        console.log(colors.green(figures.bullet) + ' Gathering info')
+        resolve()
+      }
+    }, 100)
+  })
+}
+
+function updatePath (item) {
+  item.originalPath = item.path || ''
+  item.path = argv.path ? path.join(argv.path, item.name) : path.join(process.cwd(), item.name)
+}
+
+function confirmChanges () {
+  const question = {
+    type: 'checkbox',
+    name: 'confirmations',
+    message: 'Confirm changes:',
+    choices: () => repos
+      .filter((item) => item.action !== 'skip' && item.action !== 'upToDate')
+      .map((item) => Object({
+        name: ui.checkoutConfirmLine(item),
+        checked: true,
+        value: item.name
+      }))
+  }
+  return inquirer.prompt(question).then((answers) => {
+    repos.forEach((item) => {
+      if (answers.confirmations.indexOf(item.name) < 0) {
+        item.action = 'skip'
+      }
+    })
+    return repos
+  })
+}
+
+function changeRepos (repos) {
+  return new Promise((resolve, reject) => {
+    const queue = new Queue(6)
+
+    const task = (item) => Promise.resolve()
+      .then(() => changeRepo(item))
+      .catch((err) => console.log(err))
+
+    repos.forEach((item) => {
+      if (item.action !== 'skip' && item.action !== 'upToDate') {
+        queue.add(() => task(item))
+      }
+    })
+
+    const spinnerFrame = elegantSpinner()
+
+    const loop = setInterval(() => {
+      const total = repos.length
+      const pending = queue.pendingPromises + queue.queue.length
+      const complete = total - pending
+      const heading = [colors.yellow(spinnerFrame()) + ' Checking out repos \n' + ui.progress(repos.length, complete)]
+      const errors = repos.filter((item) => item.error).map((item) => item.error)
+      const currentQueue = repos.filter((item) => item.running).map((item) => item.running)
+      const output = heading.concat(errors, currentQueue).join('\n')
+      logUpdate(output)
+      if (pending < 1) {
+        clearInterval(loop)
+        logUpdate.clear()
+        resolve()
+      }
+    }, 100)
+  })
+}
+
+function changeRepo (item) {
+  return Promise.resolve()
+    .then(() => {
+      if (item.action === 'clone') {
+        item.running = `${colors.yellow.bold(figures.pointerSmall)} Cloning ${colors.blue.bold(item.name)}`
+        return repo.clone(item.origin, item.path)
+          .catch((err) => {
+            item.error = `${colors.red.bold(figures.bullet)} Repository ${colors.blue.bold(item.name)} not found`
+            delete item.running
+            // console.log('waaaaaa', err)
+          })
+      }
+      return Promise.resolve()
+    })
+    .then(() => {
+      if (item.action === 'clone' || item.action === 'checkout') {
+        item.running = `${colors.yellow.bold(figures.pointerSmall)} Finding branch for ${colors.blue.bold(item.name)}`
+        return repo.references(item.path).then((references) => {
+          const isMaster = new RegExp(item.commit + ' refs\\/heads\\/master').exec(references)
+          if (isMaster) {
+            return Promise.resolve()
+          } else {
+            const isLocalBranch = new RegExp(item.commit + ' refs\\/heads\\/(.*)').exec(references)
+            const isRemoteBranch = new RegExp(item.commit + ' refs\\/remotes\\/(.*)').exec(references)
+            if (isLocalBranch) {
+              item.running = `${colors.yellow.bold(figures.pointerSmall)} Checking out ${colors.blue.bold(isLocalBranch[1])} on ${colors.blue.bold(item.name)}`
+              return repo.checkout(item.path, isLocalBranch[1])
+            } else if (isRemoteBranch) {
+              item.running = `${colors.yellow.bold(figures.pointerSmall)} Checking out remote branch ${colors.blue.bold(isRemoteBranch[1])} on ${colors.blue.bold(item.name)}`
+              return repo.checkout(item.path, '-t ' + isRemoteBranch[1])
+            } else {
+              item.running = `${colors.yellow.bold(figures.pointerSmall)} Checking out commit ${colors.blue.bold(item.commit.substring(7))} on ${colors.blue.bold(item.name)}`
+              return repo.checkout(item.path, item.commit)
+            }
+          }
+          // return repo.checkout(item.path, item.commit)
+        })
+      }
+      return Promise.resolve()
+    })
+    .then(() => {
+      delete item.running
+    })
+    .catch((err) => {
+      delete item.running
+      item.error = `${colors.red.bold(figures.bullet)} Coult not check out ${colors.blue.bold(item.name)}`
+    })
+}
+

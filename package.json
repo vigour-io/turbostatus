@@ -31,10 +31,15 @@
   "dependencies": {
     "cli-table2": "^0.2.0",
     "colors": "^1.1.2",
+    "elegant-spinner": "^1.0.1",
     "figures": "^1.7.0",
+    "inquirer": "^1.2.2",
+    "log-update": "^1.0.2",
     "minimatch": "^3.0.3",
     "minimist": "^1.2.0",
     "ora": "^0.3.0",
+    "promise-queue": "^2.2.3",
+    "repeating": "^3.0.0",
     "update-notifier": "^1.0.2"
   }
 }

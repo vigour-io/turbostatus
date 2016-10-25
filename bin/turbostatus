@@ -21,8 +21,8 @@ const argv = minimist(process.argv.slice(2), {
 notifier.notify()
 
 const defaultCommand = 'list'
-const commands = ['list', 'ls', 'export']
-const aliases = { 'ls': 'list' }
+const commands = ['list', 'ls', 'export', 'checkout', 'co']
+const aliases = { 'ls': 'list', 'co': 'checkout' }
 
 let cmd = argv._[0]
 let args = []
