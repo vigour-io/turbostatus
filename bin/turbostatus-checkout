@@ -42,6 +42,7 @@ const help = () => {
     -h, --help                  output usage information
     -p, --path <path>           use <path> instead of current one
     -f, --filter "<wildcard>"   filters repos by <wildcard>
+    -d, --debug                 show debugging info at the end
 
 `)
 }
@@ -76,11 +77,26 @@ Promise.resolve()
   .then(() => {
     console.log(colors.yellow.bold('done'))
     const errors = repos.filter((item) => item.error).map((item) => item.error)
-    if (errors) {
+    if (errors.length) {
       console.log(['Errors: '].concat(errors).join('\n'))
+    }
+    const debug = repos
+      .filter((item) => item.debug)
+      .map((item) => [colors.blue(item.name)].concat(item.debug).join('\n'))
+    if (debug.length) {
+      console.log(['Debug Info: '].concat(debug).join('\n'))
     }
   })
   .catch((err) => console.log(err))
+
+function debug (item, title, content, isError) {
+  if (argv.debug) {
+    item.debug = item.debug || []
+    if (isError) item.debug.push(colors.red(figures.bullet) + ' ' + title)
+    else item.debug.push(colors.yellow(figures.pointerSmall) + ' ' + title)
+    if (content) item.debug.push(content)
+  }
+}
 
 function gatherInfo () {
   return new Promise((resolve, reject) => {
@@ -89,6 +105,7 @@ function gatherInfo () {
     const task = (item) => Promise.resolve(item)
       .then((item) => {
         if (!repo.isRepo(item.path)) {
+          debug(item, 'Not a repo. Will clone.')
           item.action = 'clone'
         }
         return item
@@ -97,19 +114,22 @@ function gatherInfo () {
         if (item.action === 'clone') return item
         return repo.getLocalCommit(item.path)
           .then((localCommit) => {
+            debug(item, `Local commit is ${localCommit}`)
             if (localCommit === item.commit) {
+              debug(item, 'Local commit and target commit are the same. Is up to date.')
               item.action = 'upToDate'
             } else {
+              debug(item, 'Different commit than target. Will checkout.')
               item.action = 'checkout'
             }
             return item
           })
           .catch((err) => {
+            debug(item, 'Error getting local commit:', err, true)
             item.action = 'skip'
             item.error = `${colors.red.bold(figures.bullet)} Could not get info for ${colors.blue.bold(item.name)}`
           })
       })
-      .catch((err) => console.log(err))
 
     repos.forEach((item) => {
       updatePath(item)
@@ -167,7 +187,7 @@ function changeRepos (repos) {
 
     const task = (item) => Promise.resolve()
       .then(() => changeRepo(item))
-      .catch((err) => console.log(err))
+      .catch((err) => console.log('error changing repo. ', err))
 
     repos.forEach((item) => {
       if (item.action !== 'skip' && item.action !== 'upToDate') {
@@ -201,7 +221,9 @@ function changeRepo (item) {
       if (item.action === 'clone') {
         item.running = `${colors.yellow.bold(figures.pointerSmall)} Cloning ${colors.blue.bold(item.name)}`
         return repo.clone(item.origin, item.path)
+          .then((stdout) => debug(item, 'Cloned ' + item.origin, stdout))
           .catch((err) => {
+            debug(item, 'Error cloning ' + item.origin, err, true)
             item.error = `${colors.red.bold(figures.bullet)} Repository ${colors.blue.bold(item.name)} not found`
             delete item.running
             // console.log('waaaaaa', err)
@@ -215,19 +237,29 @@ function changeRepo (item) {
         return repo.references(item.path).then((references) => {
           const isMaster = new RegExp(item.commit + ' refs\\/heads\\/master').exec(references)
           if (isMaster) {
+            debug(item, 'Commit is current master. Done.')
             return Promise.resolve()
           } else {
             const isLocalBranch = new RegExp(item.commit + ' refs\\/heads\\/(.*)').exec(references)
             const isRemoteBranch = new RegExp(item.commit + ' refs\\/remotes\\/(.*)').exec(references)
             if (isLocalBranch) {
+              debug(item, 'Commit is already a local branch head. Will just check out that.')
               item.running = `${colors.yellow.bold(figures.pointerSmall)} Checking out ${colors.blue.bold(isLocalBranch[1])} on ${colors.blue.bold(item.name)}`
               return repo.checkout(item.path, isLocalBranch[1])
+                .then((stdout) => debug(item, 'Checkout successfull', stdout))
+                .catch((err) => debug(item, 'Error checking out', err, true))
             } else if (isRemoteBranch) {
+              debug(item, 'Commit is head of a remote branch. Will just check out and track it.')
               item.running = `${colors.yellow.bold(figures.pointerSmall)} Checking out remote branch ${colors.blue.bold(isRemoteBranch[1])} on ${colors.blue.bold(item.name)}`
               return repo.checkout(item.path, '-t ' + isRemoteBranch[1])
+                .then((stdout) => debug(item, 'Checkout successfull', stdout))
+                .catch((err) => debug(item, 'Error checking out', err, true))
             } else {
+              debug(item, 'Cant find a head so will just check out the commit')
               item.running = `${colors.yellow.bold(figures.pointerSmall)} Checking out commit ${colors.blue.bold(item.commit.substring(7))} on ${colors.blue.bold(item.name)}`
               return repo.checkout(item.path, item.commit)
+                .then((stdout) => debug(item, 'Checkout successfull', stdout))
+                .catch((err) => debug(item, 'Error checking out', err, true))
             }
           }
           // return repo.checkout(item.path, item.commit)
