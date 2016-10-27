@@ -1,31 +1,44 @@
 # ⚡️ turbostatus
-
-Tool to check the git repositories in your folder and show:
-
-- Current branch
-- If you are up to date, need to pull, need to push or diverged
-- If there are uncommited changes or untracked files
-- Current or nearest reachable tag and commits since then
-- With the `remotes` argument, updates your remotes first
-
-## Use
-
-```console
-$ turbostatus
-
-# or to update your remotes first (slow)
-$ turbostatus -r
-
-# there is also a short version:
-$ ts -r
-```
-
-There is also an export command and options to filter the repos that are searched. Check `turbostatus help` for more info.
+Tool to check the git repositories in your folder and show their status.
 
 ## Install
 
+```command
+npm install turbostatus -g
+```
+
+## Commands
+
+* `list`: shows the status of the repos in the folder (Default command)
+* `export`: exports the repo status to a json file
+* `checkout`: uses an exported json file to clone of checkout the repos to a previous state. You can interactivelly choose which changes will be applied (Experimental)
+
+## Help
+
+Run `help <command>` to see the documentation. For example:
+
 ```console
-npm i turbostatus -g
+turbostatus help list
+```
+## Examples
+
+```console
+turbostatus
+
+# It's also aliased to just "ts"
+ts
+
+# If you use the option --remote (-r) it will update the remote status first (slower)
+ts -r
+
+# You can also filter the folders that will be checked
+ts -f 'brisky*'
+
+# Export the current status of all the repos that start with 'brisky'
+ts export brisky_repos.json -f 'brisky*'
+
+# Restore to a previous state
+ts checkout brisky_repos.json
 ```
 
 <sub>Zsh version still available in branch `v1`</sub>
