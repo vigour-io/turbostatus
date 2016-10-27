@@ -1,7 +1,7 @@
 # ⚡️ turbostatus
 Tool to check the git repositories in your folder and show their status.
 
-![turbostatus](https://raw.githubusercontent.com/vigour-io/turbostatus/master/turbostatus.gif)
+![turbostatus](https://github.com/vigour-io/turbostatus/raw/ed8cfadfc5e2cd48b9a768f6f534d37ae7a8f6ae/turbostatus.gif)
 
 ## Install
 
